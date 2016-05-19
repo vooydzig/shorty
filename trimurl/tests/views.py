@@ -1,3 +1,4 @@
+import mock
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -12,6 +13,15 @@ class TrimUrlTestCase(TestCase):
     def test_index_displays_form(self):
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'index.html')
+
+    def test_short_url_must_be_unique(self):
+        with mock.patch('trimurl.models.Url._get_random_string') as ranom_mock:
+            ranom_mock.side_effect = ['TEST', 'TEST', 'TEST2']
+            self.client.post('/', data={'url': 'http://www.test1.com'})
+            self.client.post('/', data={'url': 'http://www.test2.com'})
+            self.assertEqual(ranom_mock.call_count, 3)
+        self.assertEqual(Url.objects.first().short_url, 'TEST')
+        self.assertEqual(Url.objects.last().short_url, 'TEST2')
 
     def test_adding_new_url_redirects_to_short_url_detail(self):
         self.assertEqual(Url.objects.count(), 0)

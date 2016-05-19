@@ -12,7 +12,10 @@ class Url(models.Model):
     short_url = models.URLField()
 
     def trim(self):
-        self.short_url = self._get_random_string()
+        short_url = self._get_random_string()
+        while Url.objects.filter(short_url=short_url).count() > 0:
+            short_url = self._get_random_string()
+        self.short_url = short_url
 
     def _get_random_string(self):
         return ''.join(
